@@ -1,9 +1,9 @@
 //**************************************************************//
-//  Name    : shiftIn Example 2.1                               //
-//  Author  : Carlyn Maw                                        //
-//  Date    : 25 Jan, 2007                                      //
+//  Name    : Pravets 8A Keyboard Controller                    //
+//  Author  : Orlin Dimitrov                                    //
+//  Date    : 27 Feb, 2015                                      //
 //  Version : 1.0                                               //
-//  Notes   : Code for using a CD4021B Shift Register    	//
+//  Notes   : Reading Pravets 8A keyboard                       //
 //          :                                                   //
 //****************************************************************
 
@@ -74,17 +74,75 @@ void loop()
     Serial.print(KBData, DEC);
     Serial.print(": ");
     Serial.println(KBData);
-    Keyboard.print(KBData);
+
+    switch(KBData)
+    {
+      // Left
+      case 8:
+        Keyboard.press(KEY_LEFT_ARROW);
+        Keyboard.release(KEY_LEFT_ARROW);
+        break;
+        
+      // Right
+      case 21:
+        Keyboard.press(KEY_RIGHT_ARROW);
+        Keyboard.release(KEY_RIGHT_ARROW);
+        break;
+      
+      // Up
+      case 11:
+        Keyboard.press(KEY_UP_ARROW);
+        Keyboard.release(KEY_UP_ARROW);
+        break;
+      
+      // Down
+      case 10:
+        Keyboard.press(KEY_DOWN_ARROW);
+        Keyboard.release(KEY_DOWN_ARROW);
+        break;
+
+      // Delete
+      case 127:
+        Keyboard.press(KEY_DELETE);
+        Keyboard.release(KEY_DELETE);
+        break;
+  
+      // Tab
+      case 9:
+        Keyboard.press(KEY_TAB);
+        Keyboard.release(KEY_TAB);
+        break;
+
+      // Escape
+      case 27:
+        Keyboard.press(KEY_ESC);
+        Keyboard.release(KEY_ESC);
+        break;
+
+      default:
+        //
+        Keyboard.print(KBData);
+        break;
+    }
+
   }
   
   if(StateF2 == HIGH)
   {
-    Serial.println("PinF2");  
+    Serial.println("PinF2"); 
+
+    //Press F2.
+    Keyboard.press(KEY_F2);
+    Keyboard.release(KEY_F2);
   }
   
   if(StateF1 == HIGH)
   {
     Serial.println("PinF1");  
+
+    // Press F1.
+    Keyboard.press(KEY_F1);
+    Keyboard.release(KEY_F1);
   }
   
   if((StateAKD == HIGH && StateStrobe == true) || (StateF2 == HIGH) || (StateF1 == HIGH))
