@@ -8,20 +8,20 @@
 //****************************************************************
 
 //define where your pins are
-char DataPin      = 8;
-char LatchPin     = 7;
+char PinData      = 8;
+char PinLatch     = 7;
 char ClockPin     = 6;
-char F2Pin = 5;
-char F1Pin = 4;
-char AKDPin       = 2;
+char PinF2        = 5;
+char PinF1        = 4;
+char PinAKD       = 2;
 // It is pin 2, but it is interupt 0;
-char StrobePin    = 1;
+char PinStrobe    = 1;
 
 // Define variables to hold the data 
 // for each shift register.
 // starting with non-zero numbers can help
 // troubleshoot
-char KBData = 71;
+char KBData = 42;
 volatile bool StateStrobe = false;
 int StateAKD = 0;
 int StateF2  = 0;
@@ -31,14 +31,14 @@ void setup()
 {
 
   // Set pin modes.
-  pinMode(LatchPin,     OUTPUT);
-  pinMode(ClockPin,     OUTPUT); 
-  pinMode(DataPin,      INPUT);
-  pinMode(F1Pin, INPUT);
-  pinMode(F2Pin, INPUT);
+  pinMode(PinLatch, OUTPUT);
+  pinMode(ClockPin, OUTPUT); 
+  pinMode(PinData,  INPUT_PULLUP);
+  pinMode(PinF1,    INPUT_PULLUP);
+  pinMode(PinF2,    INPUT_PULLUP);
 
   // Set interupts.
-  attachInterrupt(StrobePin, StrobeCB, RISING);
+  attachInterrupt(PinStrobe, StrobeCB, RISING);
   
   // Set serial port.
   Serial.begin(9600);
@@ -52,9 +52,9 @@ void setup()
 
 void loop()
 {
-  StateAKD = digitalRead(AKDPin);
-  StateF2 = digitalRead(F2Pin);
-  StateF1 = digitalRead(F1Pin);
+  StateAKD = digitalRead(PinAKD);
+  StateF2 = digitalRead(PinF2);
+  StateF1 = digitalRead(PinF1);
   
   if(StateAKD == HIGH && StateStrobe == true)
   {
@@ -63,7 +63,7 @@ void loop()
     //while the shift register is in serial mode
     //collect each shift register into a byte
     //the register attached to the chip comes in first 
-    KBData = ShiftIn(LatchPin, DataPin, ClockPin);
+    KBData = ShiftIn(PinLatch, PinData, ClockPin);
   
     //Print out the results.
     //leading 0's at the top of the byte 
@@ -79,12 +79,12 @@ void loop()
   
   if(StateF2 == HIGH)
   {
-    Serial.println("F2Pin");  
+    Serial.println("PinF2");  
   }
   
   if(StateF1 == HIGH)
   {
-    Serial.println("F1Pin");  
+    Serial.println("PinF1");  
   }
   
   if((StateAKD == HIGH && StateStrobe == true) || (StateF2 == HIGH) || (StateF1 == HIGH))
@@ -99,35 +99,35 @@ void loop()
 // it returns a byte with each bit in the byte corresponding
 // to a pin on the shift register. leftBit 7 = Pin 7 / Bit 0= Pin 0
 //////////////////////////////////////////////////////////////////////
-char ShiftIn(int myLatchPin, int myDataPin, int myClockPin)
+char ShiftIn(char pinLatch, char pinData, char pinClock)
 {
-  int bitIndex;
+  char bitIndex;
   int temp = 0;
   int pinState;
   char dataIn = 0;
 
   //Pulse the latch pin:
   //set it to 1 to collect parallel data
-  digitalWrite(myLatchPin, HIGH);
+  digitalWrite(pinLatch, HIGH);
   //set it to 1 to collect parallel data, wait
   delayMicroseconds(20);
   //set it to 0 to transmit data serially  
-  digitalWrite(myLatchPin, LOW);
+  digitalWrite(pinLatch, LOW);
 
   //we will be holding the clock pin high 8 times (0,..,7) at the
   //end of each time through the for loop
   
   //at the begining of each loop when we set the clock low, it will
   //be doing the necessary low to high drop to cause the shift
-  //register's DataPin to change state based on the value
+  //register's PinData to change state based on the value
   //of the next bit in its serial information flow.
   //The register transmits the information about the pins from pin 7 to pin 0
   //so that is why our function counts down
   for (bitIndex = 7; bitIndex >= 0; bitIndex--)
   {
-    digitalWrite(myClockPin, 0);
+    digitalWrite(pinClock, 0);
     delayMicroseconds(2);
-    temp = digitalRead(myDataPin);
+    temp = digitalRead(pinData);
     if (temp)
 	{
       pinState = 1;
@@ -141,12 +141,9 @@ char ShiftIn(int myLatchPin, int myDataPin, int myClockPin)
       pinState = 0;
     }
 
-    digitalWrite(myClockPin, HIGH);
-
+    digitalWrite(pinClock, HIGH);
   }
-  //debuging print statements whitespace
-  //Serial.println();
-  //Serial.println(dataIn, BIN);
+
   return dataIn;
 }
 
