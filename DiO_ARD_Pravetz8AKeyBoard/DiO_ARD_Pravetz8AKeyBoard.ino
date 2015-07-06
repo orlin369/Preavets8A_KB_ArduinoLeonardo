@@ -21,7 +21,7 @@ char PinStrobe    = 1;
 // for each shift register.
 // starting with non-zero numbers can help
 // troubleshoot
-char KBData = 42;
+char BtnData = 42;
 volatile bool StateStrobe = false;
 int StateAKD = 0;
 int StateF2  = 0;
@@ -58,24 +58,20 @@ void loop()
   
   if(StateAKD == HIGH && StateStrobe == true)
   {
+    // Clearthe interupt.
     StateStrobe = false;
     
-    //while the shift register is in serial mode
-    //collect each shift register into a byte
-    //the register attached to the chip comes in first 
-    KBData = ShiftIn(PinLatch, PinData, ClockPin);
-  
-    //Print out the results.
-    //leading 0's at the top of the byte 
-    //(7, 6, 5, etc) will be dropped before 
-    //the first pin that has a high input
-    //reading
-    //Serial.println(KBData, BIN);
-    Serial.print(KBData, DEC);
+    // reading
+    // while the shift register is in serial mode
+    // collect each shift register into a byte
+    BtnData = ShiftIn(PinLatch, PinData, ClockPin);
+    
+    //Serial.println(BtnData, BIN);
+    Serial.print(BtnData, DEC);
     Serial.print(": ");
-    Serial.println(KBData);
-
-    switch(KBData)
+    Serial.println(BtnData);
+    
+    switch(BtnData)
     {
       // Left
       case 8:
@@ -119,9 +115,15 @@ void loop()
         Keyboard.release(KEY_ESC);
         break;
 
+      // Return
+      case 13:
+        Keyboard.press(KEY_RETURN);
+        Keyboard.release(KEY_RETURN);
+        break;
+      
       default:
         //
-        Keyboard.print(KBData);
+        Keyboard.print(BtnData);
         break;
     }
 
@@ -129,7 +131,7 @@ void loop()
   
   if(StateF2 == HIGH)
   {
-    Serial.println("PinF2"); 
+    Serial.println("F2"); 
 
     //Press F2.
     Keyboard.press(KEY_F2);
@@ -138,7 +140,7 @@ void loop()
   
   if(StateF1 == HIGH)
   {
-    Serial.println("PinF1");  
+    Serial.println("F1");  
 
     // Press F1.
     Keyboard.press(KEY_F1);
@@ -160,8 +162,7 @@ void loop()
 char ShiftIn(char pinLatch, char pinData, char pinClock)
 {
   char bitIndex;
-  int temp = 0;
-  int pinState;
+  int pinState = 0;
   char dataIn = 0;
 
   //Pulse the latch pin:
@@ -183,20 +184,17 @@ char ShiftIn(char pinLatch, char pinData, char pinClock)
   //so that is why our function counts down
   for (bitIndex = 7; bitIndex >= 0; bitIndex--)
   {
-    digitalWrite(pinClock, 0);
+    digitalWrite(pinClock, LOW);
     delayMicroseconds(2);
-    temp = digitalRead(pinData);
-    if (temp)
-	{
-      pinState = 1;
-      //set the bit to 0 no matter what
+    pinState = digitalRead(pinData);
+    if (pinState)
+    {
+      // Set the bit to 0 no matter what
       dataIn = dataIn | (1 << bitIndex);
     }
     else
-	{
-      //turn it off -- only necessary for debuging
-     //print statement since dataIn starts as 0
-      pinState = 0;
+    {
+      // only necessary for debuging
     }
 
     digitalWrite(pinClock, HIGH);
